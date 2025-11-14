@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VoxelMeshGenerator : MonoBehaviour
@@ -6,6 +7,7 @@ public class VoxelMeshGenerator : MonoBehaviour
     public Material voxelMaterial;
     public int[,,] voxelData;
     [SerializeField] int chunkSize = 16;
+    const int width = 1, height = 1;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -30,6 +32,12 @@ public class VoxelMeshGenerator : MonoBehaviour
             }
 
 
+        }
+
+        void createFace(int x, int y, int z, Vector3[] vertices)
+        {
+
+            
         }
 
         // Update is called once per frame
