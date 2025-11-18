@@ -25,7 +25,7 @@ public class VoxelMeshGenerator : MonoBehaviour
             {
                 for (int z = 0; z < chunkSize; z++)
                 {
-                    if ((x + y + z) % 2 == 0)
+                    if ((x + y + z) % 8 == 0)
                     {
                   if (x == 0 || x == chunkSize - 1 || y == 0 || y == chunkSize - 1 || z == 0 || z == chunkSize - 1)
                   {
