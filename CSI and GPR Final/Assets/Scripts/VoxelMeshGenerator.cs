@@ -171,7 +171,7 @@ public class VoxelMeshGenerator : MonoBehaviour
 
     void CreateFrontFace(int x, int y, int z)
     {
-      if(z==0 || !IsNeighborSolid(x,y,z-1))
+      if(z== chunkSize - 1 || !IsNeighborSolid(x,y,z+1))
         {int vertexIndex = vertices.Count;
         vertices.Add(new Vector3(x, y, z + 1));
         vertices.Add(new Vector3(x + 1, y, z + 1));
@@ -184,7 +184,7 @@ public class VoxelMeshGenerator : MonoBehaviour
 
     void CreateBackFace(int x, int y, int z)
     {
-      if (z == chunkSize-1 || IsNeighborSolid(x, y, z +1))
+      if (z == 0 || !IsNeighborSolid(x, y, z-1))
       {
          int vertexIndex = vertices.Count;
          vertices.Add(new Vector3(x, y, z));
