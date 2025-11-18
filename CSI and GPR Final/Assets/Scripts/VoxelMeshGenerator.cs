@@ -107,70 +107,93 @@ public class VoxelMeshGenerator : MonoBehaviour
             }
             return voxelData[x, y, z] == 1;
         }
+
+        bool IsNeighborSolid(int x, int y, int z){
+         if(voxelData[x, y, z] == 1){
+            return true;
+         }else{ 
+         return false; }
+
+
+         }
     void CreateTopFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
-        vertices.Add(new Vector3(x, y + 1, z));
-        vertices.Add(new Vector3(x, y + 1, z + 1));
-        vertices.Add(new Vector3(x + 1, y + 1, z + 1));
-        vertices.Add(new Vector3(x + 1, y + 1, z));
-        AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+      if (y == chunkSize-1 || !IsNeighborSolid(x, y + 1, z))
+      {
+         int vertexIndex = vertices.Count;
+         vertices.Add(new Vector3(x, y + 1, z));
+         vertices.Add(new Vector3(x, y + 1, z + 1));
+         vertices.Add(new Vector3(x + 1, y + 1, z + 1));
+         vertices.Add(new Vector3(x + 1, y + 1, z));
+         AddQuadTriangles(vertexIndex);
+         AddQuadUVs();
+      }
     }
 
     void CreateBottomFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
+      if(y == 0 || !IsNeighborSolid(x, y -1, z))
+       { int vertexIndex = vertices.Count;
         vertices.Add(new Vector3(x, y, z));
         vertices.Add(new Vector3(x + 1, y, z));
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x, y, z + 1));
         AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+         AddQuadUVs();
+      }
     }
 
     void CreateLeftFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
+      if(x == 0 || !IsNeighborSolid(x-1,y,z))
+        {int vertexIndex = vertices.Count;
         vertices.Add(new Vector3(x, y, z));
         vertices.Add(new Vector3(x, y, z + 1));
         vertices.Add(new Vector3(x, y + 1, z + 1));
         vertices.Add(new Vector3(x, y + 1, z));
         AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+         AddQuadUVs();
+      }
     }
 
     void CreateRightFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
+        if(x==chunkSize-1 || !IsNeighborSolid(x+1,y,z))
+        {int vertexIndex = vertices.Count;
         vertices.Add(new Vector3(x + 1, y, z));
         vertices.Add(new Vector3(x + 1, y + 1, z));
         vertices.Add(new Vector3(x + 1, y + 1, z + 1));
         vertices.Add(new Vector3(x + 1, y, z + 1));
         AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+         AddQuadUVs();
+      }
     }
 
     void CreateFrontFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
+      if(z==0 || !IsNeighborSolid(x,y,z-1))
+        {int vertexIndex = vertices.Count;
         vertices.Add(new Vector3(x, y, z + 1));
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x + 1, y + 1, z + 1));
         vertices.Add(new Vector3(x, y + 1, z + 1));
         AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+         AddQuadUVs();
+      }
     }
 
     void CreateBackFace(int x, int y, int z)
     {
-        int vertexIndex = vertices.Count;
-        vertices.Add(new Vector3(x, y, z));
-        vertices.Add(new Vector3(x, y + 1, z));
-        vertices.Add(new Vector3(x + 1, y + 1, z));
-        vertices.Add(new Vector3(x + 1, y, z));
-        AddQuadTriangles(vertexIndex);
-        AddQuadUVs();
+      if (z == chunkSize-1 || IsNeighborSolid(x, y, z +1))
+      {
+         int vertexIndex = vertices.Count;
+         vertices.Add(new Vector3(x, y, z));
+         vertices.Add(new Vector3(x, y + 1, z));
+         vertices.Add(new Vector3(x + 1, y + 1, z));
+         vertices.Add(new Vector3(x + 1, y, z));
+         AddQuadTriangles(vertexIndex);
+         AddQuadUVs();
+      }
     }
     
     void AddQuadTriangles(int vertexIndex)
