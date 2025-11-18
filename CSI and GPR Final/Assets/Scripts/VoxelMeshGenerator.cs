@@ -27,13 +27,19 @@ public class VoxelMeshGenerator : MonoBehaviour
                 {
                     if ((x + y + z) % 2 == 0)
                     {
-                        voxelData[x, y, z] = 1;
+                  if (x == 0 || x == chunkSize - 1 || y == 0 || y == chunkSize - 1 || z == 0 || z == chunkSize - 1)
+                  {
+                     voxelData[x, y, z] = 0;
+                  }else{
+                     voxelData[x, y, z] = 1;
+                  }
+                  
                     }
                     else
                     {
-                        voxelData[x, y, z] = 0;
+                     voxelData[x, y, z] = 1;
 
-                    }
+               }
                 }
             }
 
