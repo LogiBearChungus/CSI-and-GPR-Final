@@ -45,10 +45,10 @@ public class PerlinNoise
         float v = Fade(yf);
 
         // Hash the four corners
-        int aa = perm[perm[xi] + yi];
-        int ab = perm[perm[xi] + yi + 1];
-        int ba = perm[perm[xi + 1] + yi];
-        int bb = perm[perm[xi + 1] + yi + 1];
+        int aa = perm[perm[xi] + yi];         //bottom left
+        int ab = perm[perm[xi] + yi + 1];     //top left
+        int ba = perm[perm[xi + 1] + yi];     //bottom right
+        int bb = perm[perm[xi + 1] + yi + 1]; //top right
 
         // Get gradient dot products at each corner
         float x1 = Lerp(Grad(aa, xf, yf),
