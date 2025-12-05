@@ -52,6 +52,7 @@ MonoBehaviour:
   zLocation: 0
   chunkSize: 32
   heightMultiplier: 0.5
+  chunkHeight: 0
 --- !u!33 &889696041593894639
 MeshFilter:
   m_ObjectHideFlags: 0
