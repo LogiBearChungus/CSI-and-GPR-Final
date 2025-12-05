@@ -1,70 +1,85 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class PerlinNoise
+
+
+public class PerlinNoise : MonoBehaviour
 {
-    private int[] perm;
-    
-    public PerlinNoise()
+    static int size = 10;
+    public Vector2[,] gradients = new Vector2[size,size];
+    const double twoPi = 2 * Math.PI;
+
+
+    void generateGradients()
     {
-        perm = new int[512];
-        System.Random rand = new System.Random();
-
-        // list 0 - 255
-        int[] p = new int[256];
-        for (int i = 0; i < 256; i++)
-            p[i] = i;
-
-        // Shuffle the list so the noise looks different each run
-        for (int i = 0; i < 256; i++)
+        for (int x = 0; x < size; x++)
         {
-            int swapIndex = rand.Next(256);
-            int temp = p[i];
-            p[i] = p[swapIndex];
-            p[swapIndex] = temp;
+            for (int y = 0; y < size; y++)
+            {
+                //randomly generates an angle for each point in grid and makes a gradient vector for it
+                gradients[x, y] = CreateGradient(UnityEngine.Random.Range(0.0f, (float)twoPi));
+                Debug.Log(gradients[x, y]);
+            }
+
+        }
+    }
+        
+
+    Vector2 CreateGradient(float angle)
+    {
+        //Creates a unit vector from a given angle
+        Vector2 gradient = new Vector2((float)Math.Cos(angle),(float)Math.Sin(angle));
+        return gradient;
+    }  
+
+ 
+    // 2D Perlin noise, returns 0–1
+    public float[,] createNoise(int chunkSize)
+    {
+        generateGradients();
+        int totalVoxels = size * chunkSize;
+        float[,] heightMap = new float[totalVoxels,totalVoxels];
+
+        for(int x = 0; x < totalVoxels; x++)
+        {
+            for(int y = 0; y < totalVoxels; y++)
+            {
+                heightMap[x,y] = findHeight(x/16, y/16);
+            }
         }
 
-        // Duplicate the list so we can avoid wrapping logic 
-        for (int i = 0; i < 512; i++)
-            perm[i] = p[i % 256];
+
+        return heightMap;
+        
     }
 
-    // 2D Perlin noise, returns 0–1
-    public float Noise(float x, float y)
+    float findHeight(float x, float y)
     {
-        // Find the integer grid coordinates around our point
-        int xi = (int)Math.Floor(x) & 255;
-        int yi = (int)Math.Floor(y) & 255;
+        
+        int floorX = Mathf.FloorToInt(x);
+        int floorY = Mathf.FloorToInt(y);
+        int ceilingX = Mathf.CeilToInt(x);
+        int ceilingY = Mathf.CeilToInt(y);
 
-        // Distance inside the cell
-        float xf = x - (int)Math.Floor(x);
-        float yf = y - (int)Math.Floor(y);
+        Vector2 bottomLeft = new Vector2(x-floorX,y-floorY);
+        Vector2 bottomRight = new Vector2(ceilingX-x,y-floorY);
+        Vector2 topLeft = new Vector2(x - floorX, ceilingY-y);
+        Vector2 topRight = new Vector2(ceilingX - x, ceilingY - y);
 
-        // Smooth the curve (removes sharp edges)
-        float u = Fade(xf);
-        float v = Fade(yf);
-
-        // Hash the four corners
-        int aa = perm[perm[xi] + yi];
-        int ab = perm[perm[xi] + yi + 1];
-        int ba = perm[perm[xi + 1] + yi];
-        int bb = perm[perm[xi + 1] + yi + 1];
-
-        // Get gradient dot products at each corner
-        float x1 = Lerp(Grad(aa, xf, yf),
-                        Grad(ba, xf - 1, yf), u);
-
-        float x2 = Lerp(Grad(ab, xf, yf - 1),
-                        Grad(bb, xf - 1, yf - 1), u);
-
-        // Blend the top and bottom
-        return (Lerp(x1, x2, v) + 1) * 0.5f;
+        float bottomLerp = Lerp(Vector2.Dot(bottomLeft, gradients[floorX,floorY]), Vector2.Dot(bottomRight, gradients[ceilingX,floorY]), Fade(x - floorX));
+        
+        float topLerp = Lerp(Vector2.Dot(topLeft, gradients[floorX,ceilingY]), Vector2.Dot(topRight, gradients[ceilingX,ceilingY]), Fade(x - floorX));
+        
+        
+        return Lerp(bottomLerp, topLerp, Fade(y - floorY));
     }
 
     private float Fade(float t)
     {
         // 6t^5 - 15t^4 + 10t^3
         // This curve eases in and out
+        //quintic fade function
         return t * t * t * (t * (t * 6 - 15) + 10);
     }
 
@@ -73,19 +88,5 @@ public class PerlinNoise
     {
         return a + t * (b - a);
     }
-
-
-    // Simple gradient function using last 2 bits of hash (4 directions)
-    private float Grad(int hash, float x, float y)
-    {
-        // Select one of 4 gradients based on hash
-        switch (hash & 3)
-        {
-            case 0: return x + y;
-            case 1: return -x + y;
-            case 2: return x - y;
-            case 3: return -x - y;
-        }
-        return 0; //should never happen
-    }
+    
 }

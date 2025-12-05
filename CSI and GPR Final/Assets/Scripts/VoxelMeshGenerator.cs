@@ -1,15 +1,18 @@
 //I used this video as a reference https://www.youtube.com/watch?v=lyDJPVp7Oc8 but its not copy and pasted
 
+using JetBrains.Annotations;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class VoxelMeshGenerator : MonoBehaviour
 {
-
+    [SerializeField] PerlinNoise perlinNoise;
     public Material voxelMaterial;
     public int[,,] voxelData;
     [SerializeField] int chunkSize = 16;
     const int width = 1, height = 1;
+    public float[,] heightMap;
 
     private Mesh mesh;
     private List<Vector3> vertices = new List<Vector3>();
@@ -19,30 +22,27 @@ public class VoxelMeshGenerator : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        heightMap = perlinNoise.createNoise(chunkSize);
         //Generate Voxel Data
         voxelData = new int[chunkSize, chunkSize, chunkSize];
         for (int x = 0; x < chunkSize; x++)
         {
-            for (int y = 0; y < chunkSize; y++)
-            {
-                for (int z = 0; z < chunkSize; z++)
+            for (int z = 0; z < chunkSize; z++)
+            {   
+                int height = Mathf.RoundToInt(chunkSize * heightMap[x,z]);
+                for (int y = 0; y < chunkSize; y++)
                 {
-                    if ((x + y + z) % 8 == 0)
+                    if (y < height)
                     {
-                  if (x == 0 || x == chunkSize - 1 || y == 0 || y == chunkSize - 1 || z == 0 || z == chunkSize - 1)
-                  {
-                     voxelData[x, y, z] = 0;
-                  }else{
-                     voxelData[x, y, z] = 1;
-                  }
-                  
+                        voxelData[x,y,z] = 1;
                     }
                     else
                     {
-                     voxelData[x, y, z] = 1;
+                        voxelData[x, y, z] = 0;
+                    }
 
-               }
                 }
+                
             }
 
 
