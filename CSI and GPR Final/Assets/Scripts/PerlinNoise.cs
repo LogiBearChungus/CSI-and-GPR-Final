@@ -6,13 +6,14 @@ using UnityEngine;
 
 public class PerlinNoise : MonoBehaviour
 {
-    static int size = 10;
-    public Vector2[,] gradients = new Vector2[size,size];
+    public int size = 10;
+    public Vector2[,] gradients;
     const double twoPi = 2 * Math.PI;
 
 
     void generateGradients()
     {
+        gradients = new Vector2[size, size];
         for (int x = 0; x < size; x++)
         {
             for (int y = 0; y < size; y++)
@@ -56,8 +57,7 @@ public class PerlinNoise : MonoBehaviour
 
     float findHeight(float x, float y)
     {
-        Debug.Log(x);
-        Debug.Log(y);
+       
 
         int floorX = Mathf.FloorToInt(x);
         int floorY = Mathf.FloorToInt(y);
@@ -68,8 +68,7 @@ public class PerlinNoise : MonoBehaviour
         ceilingY = Mathf.Clamp(ceilingY, 0, size - 1);
 
         Vector2 bottomLeft = new Vector2(x-floorX,y-floorY);
-        Debug.Log(bottomLeft);
-        Debug.Log(gradients[floorX, floorY]);
+        
         Vector2 bottomRight = new Vector2(ceilingX-x,y-floorY);
         Vector2 topLeft = new Vector2(x - floorX, ceilingY-y);
         Vector2 topRight = new Vector2(ceilingX - x, ceilingY - y);
@@ -78,7 +77,7 @@ public class PerlinNoise : MonoBehaviour
         
         float topLerp = Lerp(Vector2.Dot(topLeft, gradients[floorX,ceilingY]), Vector2.Dot(topRight, gradients[ceilingX,ceilingY]), Fade(x - floorX));
 
-        Debug.DebugBreak();
+        
         return Lerp(bottomLerp, topLerp, Fade(y - floorY));
     }
 

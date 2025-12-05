@@ -7,29 +7,29 @@ using UnityEngine;
 
 public class VoxelMeshGenerator : MonoBehaviour
 {
-    [SerializeField] PerlinNoise perlinNoise;
     public Material voxelMaterial;
     public int[,,] voxelData;
-    [SerializeField] int chunkSize = 16;
     const int width = 1, height = 1;
-    public float[,] heightMap;
-
+    [SerializeField] public float[,] heightMap;
+    [SerializeField] public int xLocation;
+    [SerializeField] public int zLocation;
+    [SerializeField] public int chunkSize;
     private Mesh mesh;
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void BuildChunk()
     {
-        heightMap = perlinNoise.createNoise(chunkSize);
+        
         //Generate Voxel Data
         voxelData = new int[chunkSize, chunkSize, chunkSize];
         for (int x = 0; x < chunkSize; x++)
         {
             for (int z = 0; z < chunkSize; z++)
-            {   
-                int height = Mathf.CeilToInt(chunkSize * heightMap[x,z]);
+            {
+                int height = (chunkSize/2) + Mathf.CeilToInt(chunkSize * heightMap[x+(xLocation*chunkSize), z+(zLocation*chunkSize)]);
                 for (int y = 0; y < chunkSize; y++)
                 {
                     if (y < height)
