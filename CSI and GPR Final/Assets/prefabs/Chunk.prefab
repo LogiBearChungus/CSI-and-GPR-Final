@@ -47,9 +47,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 020b92584c00ea64aa67ce1b2da85991, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelMeshGenerator
-  perlinNoise: {fileID: 3479008979718247893}
   voxelMaterial: {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
+  xLocation: 0
+  zLocation: 0
   chunkSize: 32
+  heightMultiplier: 0.5
 --- !u!33 &889696041593894639
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -118,3 +120,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0dd18b001bd575c46bd93ee1da76b805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PerlinNoise
+  size: 10

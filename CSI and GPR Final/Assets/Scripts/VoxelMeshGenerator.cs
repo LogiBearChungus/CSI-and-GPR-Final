@@ -14,6 +14,7 @@ public class VoxelMeshGenerator : MonoBehaviour
     [SerializeField] public int xLocation;
     [SerializeField] public int zLocation;
     [SerializeField] public int chunkSize;
+    [SerializeField] public float heightMultiplier;
     private Mesh mesh;
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
@@ -29,7 +30,8 @@ public class VoxelMeshGenerator : MonoBehaviour
         {
             for (int z = 0; z < chunkSize; z++)
             {
-                int height = (chunkSize/2) + Mathf.CeilToInt(chunkSize * heightMap[x+(xLocation*chunkSize), z+(zLocation*chunkSize)]);
+                int height = (chunkSize/2) + Mathf.CeilToInt(chunkSize * (heightMap[x+(xLocation*chunkSize), z+(zLocation*chunkSize)]) * heightMultiplier);
+                
                 for (int y = 0; y < chunkSize; y++)
                 {
                     if (y < height)

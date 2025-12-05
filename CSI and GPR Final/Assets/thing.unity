@@ -304,11 +304,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe540aa8dc118b94cbcad25ef43a7ba9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  chunkSize: 16
+  chunkSize: 32
   chunkPrefab: {fileID: 516330425528005635, guid: 4e1b725c4b5a21949af7bd6db6b3fcd2, type: 3}
   chunkSideCount: 10
-  noiseMultiplier: 20
+  noiseMultiplier: 1
   perlinNoise: {fileID: 1435415840}
+  defaultHeightMultiplier: 0.67
+  developSlope: 0
 --- !u!1 &1772118680
 GameObject:
   m_ObjectHideFlags: 0
