@@ -29,7 +29,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         {
             for (int z = 0; z < chunkSize; z++)
             {   
-                int height = Mathf.RoundToInt(chunkSize * heightMap[x,z]);
+                int height = Mathf.CeilToInt(chunkSize * heightMap[x,z]);
                 for (int y = 0; y < chunkSize; y++)
                 {
                     if (y < height)

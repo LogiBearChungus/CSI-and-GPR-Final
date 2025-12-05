@@ -19,7 +19,7 @@ public class PerlinNoise : MonoBehaviour
             {
                 //randomly generates an angle for each point in grid and makes a gradient vector for it
                 gradients[x, y] = CreateGradient(UnityEngine.Random.Range(0.0f, (float)twoPi));
-                Debug.Log(gradients[x, y]);
+                
             }
 
         }
@@ -35,17 +35,17 @@ public class PerlinNoise : MonoBehaviour
 
  
     // 2D Perlin noise, returns 0–1
-    public float[,] createNoise(int chunkSize)
+    public float[,] createNoise(float chunkSize)
     {
         generateGradients();
-        int totalVoxels = size * chunkSize;
+        int totalVoxels = size * (int)chunkSize;
         float[,] heightMap = new float[totalVoxels,totalVoxels];
 
         for(int x = 0; x < totalVoxels; x++)
         {
             for(int y = 0; y < totalVoxels; y++)
             {
-                heightMap[x,y] = findHeight(x/16, y/16);
+                heightMap[x,y] = findHeight(x/chunkSize, y/chunkSize);
             }
         }
 
@@ -56,13 +56,20 @@ public class PerlinNoise : MonoBehaviour
 
     float findHeight(float x, float y)
     {
-        
+        Debug.Log(x);
+        Debug.Log(y);
+
         int floorX = Mathf.FloorToInt(x);
         int floorY = Mathf.FloorToInt(y);
         int ceilingX = Mathf.CeilToInt(x);
         int ceilingY = Mathf.CeilToInt(y);
 
+        ceilingX = Mathf.Clamp(ceilingX,0, size - 1);
+        ceilingY = Mathf.Clamp(ceilingY, 0, size - 1);
+
         Vector2 bottomLeft = new Vector2(x-floorX,y-floorY);
+        Debug.Log(bottomLeft);
+        Debug.Log(gradients[floorX, floorY]);
         Vector2 bottomRight = new Vector2(ceilingX-x,y-floorY);
         Vector2 topLeft = new Vector2(x - floorX, ceilingY-y);
         Vector2 topRight = new Vector2(ceilingX - x, ceilingY - y);
@@ -70,8 +77,8 @@ public class PerlinNoise : MonoBehaviour
         float bottomLerp = Lerp(Vector2.Dot(bottomLeft, gradients[floorX,floorY]), Vector2.Dot(bottomRight, gradients[ceilingX,floorY]), Fade(x - floorX));
         
         float topLerp = Lerp(Vector2.Dot(topLeft, gradients[floorX,ceilingY]), Vector2.Dot(topRight, gradients[ceilingX,ceilingY]), Fade(x - floorX));
-        
-        
+
+        Debug.DebugBreak();
         return Lerp(bottomLerp, topLerp, Fade(y - floorY));
     }
 
