@@ -133,7 +133,7 @@ public class VoxelMeshGenerator : MonoBehaviour
          vertices.Add(new Vector3(x + 1, y + 1, z + 1));
          vertices.Add(new Vector3(x + 1, y + 1, z));
          AddQuadTriangles(vertexIndex);
-         AddQuadUVs();
+         AddQuadUVs(0.5f);
       }
     }
 
@@ -146,7 +146,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x, y, z + 1));
         AddQuadTriangles(vertexIndex);
-         AddQuadUVs();
+         AddQuadUVs(1);
       }
     }
 
@@ -162,7 +162,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x, y + 1, z + 1));
                 vertices.Add(new Vector3(x, y + 1, z));
                 AddQuadTriangles(vertexIndex);
-                AddQuadUVs();
+                AddQuadUVs(1);
                 
             }
         }else if (!IsNeighborSolid(x - 1, y, z))
@@ -173,7 +173,7 @@ public class VoxelMeshGenerator : MonoBehaviour
             vertices.Add(new Vector3(x, y + 1, z + 1));
             vertices.Add(new Vector3(x, y + 1, z));
             AddQuadTriangles(vertexIndex);
-            AddQuadUVs();
+            AddQuadUVs(1);
         }
         
     }
@@ -190,7 +190,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x + 1, y + 1, z + 1));
                 vertices.Add(new Vector3(x + 1, y, z + 1));
                 AddQuadTriangles(vertexIndex);
-                AddQuadUVs();
+                AddQuadUVs(1);
             }
         }else if (!IsNeighborSolid(x + 1, y, z))
         {
@@ -200,7 +200,7 @@ public class VoxelMeshGenerator : MonoBehaviour
             vertices.Add(new Vector3(x + 1, y + 1, z + 1));
             vertices.Add(new Vector3(x + 1, y, z + 1));
             AddQuadTriangles(vertexIndex);
-            AddQuadUVs();
+            AddQuadUVs(1);
         }
         
     }
@@ -217,7 +217,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x + 1, y + 1, z + 1));
                 vertices.Add(new Vector3(x, y + 1, z + 1));
                 AddQuadTriangles(vertexIndex);
-                AddQuadUVs();
+                AddQuadUVs(1);
             }
         }else if (!IsNeighborSolid(x,y,z+1))
         {int vertexIndex = vertices.Count;
@@ -226,7 +226,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Add(new Vector3(x + 1, y + 1, z + 1));
         vertices.Add(new Vector3(x, y + 1, z + 1));
         AddQuadTriangles(vertexIndex);
-         AddQuadUVs();
+         AddQuadUVs(1);
       }
     }
 
@@ -242,7 +242,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x + 1, y + 1, z));
                 vertices.Add(new Vector3(x + 1, y, z));
                 AddQuadTriangles(vertexIndex);
-                AddQuadUVs();
+                AddQuadUVs(1);
             }
         }else if ( !IsNeighborSolid(x, y, z-1))
       {
@@ -252,7 +252,7 @@ public class VoxelMeshGenerator : MonoBehaviour
          vertices.Add(new Vector3(x + 1, y + 1, z));
          vertices.Add(new Vector3(x + 1, y, z));
          AddQuadTriangles(vertexIndex);
-         AddQuadUVs();
+         AddQuadUVs(1);
       }
       
     }
@@ -270,11 +270,11 @@ public class VoxelMeshGenerator : MonoBehaviour
         triangles.Add(vertexIndex + 3);
     }
 
-    void AddQuadUVs()
+    void AddQuadUVs(float texCoord)
     {
-        uvs.Add(new Vector2(0, 0));
-        uvs.Add(new Vector2(1, 0));
-        uvs.Add(new Vector2(1, 1));
-        uvs.Add(new Vector2(0, 1));
+        uvs.Add(new Vector2(texCoord-0.5f, texCoord-0.5f));
+        uvs.Add(new Vector2(texCoord, texCoord - 0.5f));
+        uvs.Add(new Vector2(texCoord, texCoord));
+        uvs.Add(new Vector2(texCoord - 0.5f, texCoord));
     }
 }

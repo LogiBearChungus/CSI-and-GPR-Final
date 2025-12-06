@@ -47,12 +47,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 020b92584c00ea64aa67ce1b2da85991, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelMeshGenerator
-  voxelMaterial: {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
+  voxelMaterial: {fileID: 2100000, guid: 2ef20f4d007f6ce42ba5ac066ae29bf6, type: 2}
   xLocation: 0
   zLocation: 0
   chunkSize: 32
   heightMultiplier: 0.5
-  chunkHeight: 0
+  chunkManager: {fileID: 0}
 --- !u!33 &889696041593894639
 MeshFilter:
   m_ObjectHideFlags: 0
