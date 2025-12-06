@@ -20,11 +20,14 @@ public class VoxelMeshGenerator : MonoBehaviour
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
+    [SerializeField] public Material grass;
+    private List<Material> usedMaterials;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void BuildChunk()
     {
-        
+        usedMaterials = new List<Material>();
+        mesh = new Mesh();
         //Generate Voxel Data
         voxelData = new int[chunkSize, chunkSize, chunkSize];
         for (int x = 0; x < chunkSize; x++)
@@ -55,6 +58,7 @@ public class VoxelMeshGenerator : MonoBehaviour
 
     public void GenerateMesh()
     {
+        mesh.Clear();
         vertices.Clear();
         triangles.Clear();
         uvs.Clear();
@@ -75,12 +79,10 @@ public class VoxelMeshGenerator : MonoBehaviour
         }
 
         // Create or update the mesh
-        if (mesh == null)
-        {
-            mesh = new Mesh();
-            GetComponent<MeshFilter>().mesh = mesh;
-        }
-        mesh.Clear();
+      
+       GetComponent<MeshFilter>().mesh = mesh;
+        
+        
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.uv = uvs.ToArray();
@@ -91,6 +93,12 @@ public class VoxelMeshGenerator : MonoBehaviour
         {
             GetComponent<MeshRenderer>().material = voxelMaterial;
         }
+      /*  Material[] finalMaterials = new Material[usedMaterials.Count];
+        for (int i = 0; i < usedMaterials.Count; i++)
+        {
+            finalMaterials[i] = usedMaterials[i];
+        }
+        GetComponent<MeshRenderer>().sharedMaterials = finalMaterials;*/
     }
     void CreateVoxel(int x, int y, int z)
     {
@@ -103,7 +111,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         if (!IsVoxelSolid(x, y, z - 1)) CreateBackFace(x, y, z);     // Back
 
     }
-       public bool IsVoxelSolid(int x, int y, int z)
+    public bool IsVoxelSolid(int x, int y, int z)
         {
             // Check if position is out of bounds
             if (x < 0 || x >= chunkSize || y < 0 || y >= chunkSize || z < 0 || z >= chunkSize)
@@ -127,12 +135,15 @@ public class VoxelMeshGenerator : MonoBehaviour
     {
       if (y == chunkSize-1 || !IsNeighborSolid(x, y + 1, z))
       {
+            mesh.subMeshCount++;
          int vertexIndex = vertices.Count;
          vertices.Add(new Vector3(x, y + 1, z));
          vertices.Add(new Vector3(x, y + 1, z + 1));
          vertices.Add(new Vector3(x + 1, y + 1, z + 1));
          vertices.Add(new Vector3(x + 1, y + 1, z));
-         AddQuadTriangles(vertexIndex);
+            AddQuadTriangles(vertexIndex);
+            //mesh.SetTriangles(AddSubMeshTriangles(vertexIndex), mesh.subMeshCount - 1);
+            //usedMaterials.Add(grass);
          AddQuadUVs(0.5f);
       }
     }
@@ -146,7 +157,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x, y, z + 1));
         AddQuadTriangles(vertexIndex);
-         AddQuadUVs(1);
+        AddQuadUVs(1);
       }
     }
 
@@ -269,6 +280,22 @@ public class VoxelMeshGenerator : MonoBehaviour
         triangles.Add(vertexIndex + 2);
         triangles.Add(vertexIndex + 3);
     }
+
+    List<int> AddSubMeshTriangles(int vertexIndex) {
+        List<int> tAngles = new List<int>();
+        tAngles.Add(vertexIndex);
+        tAngles.Add(vertexIndex + 1);
+        tAngles.Add(vertexIndex + 2);
+
+        // Second triangle
+        tAngles.Add(vertexIndex);
+        tAngles.Add(vertexIndex + 2);
+        tAngles.Add(vertexIndex + 3);
+
+        return tAngles;
+    }
+
+
 
     void AddQuadUVs(float texCoord)
     {

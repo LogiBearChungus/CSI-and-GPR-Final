@@ -53,6 +53,7 @@ MonoBehaviour:
   chunkSize: 32
   heightMultiplier: 0.5
   chunkManager: {fileID: 0}
+  grass: {fileID: 2100000, guid: da0047e472385b249a52f084ab807880, type: 2}
 --- !u!33 &889696041593894639
 MeshFilter:
   m_ObjectHideFlags: 0
