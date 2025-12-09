@@ -22,12 +22,16 @@ public class VoxelMeshGenerator : MonoBehaviour
     private List<Vector2> uvs = new List<Vector2>();
     [SerializeField] public Material grass;
     [SerializeField] public Material[] materials;
-    private Dictionary<int, List<int>> materialTriangles = new Dictionary<int, List<int>>();
+   // private Dictionary<int, List<int>> materialTriangles = new Dictionary<int, List<int>>();
+    private List<int>[] submeshTriangles;
+    
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void BuildChunk()
     {
         mesh = new Mesh();
+        
+        
         //Generate Voxel Data
         voxelData = new int[chunkSize, chunkSize, chunkSize];
         for (int x = 0; x < chunkSize; x++)
@@ -61,12 +65,14 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Clear();
         triangles.Clear();
         uvs.Clear();
-        materialTriangles.Clear();
+        //materialTriangles.Clear();
 
         // Initialize triangle lists for each material
-        for (int i = 1; i < materials.Length; i++)
+        submeshTriangles = new List<int>[materials.Length];
+        for (int i = 0; i < materials.Length; i++)
         {
-            materialTriangles[i] = new List<int>();
+            
+            submeshTriangles[i] = new List<int>();
         }
 
         // Loop through all voxels
@@ -91,15 +97,10 @@ public class VoxelMeshGenerator : MonoBehaviour
         mesh.uv = uvs.ToArray();
 
         // Set submeshes
-        mesh.subMeshCount = materials.Length - 1;
-        int subMeshIndex = 0;
+        mesh.subMeshCount = materials.Length;
         for (int i = 1; i < materials.Length; i++)
         {
-            if (materialTriangles[i].Count > 0)
-            {
-                mesh.SetTriangles(materialTriangles[i], subMeshIndex);
-                subMeshIndex++;
-            }
+                mesh.SetTriangles(submeshTriangles[i], i);  
         }
 
         mesh.RecalculateNormals();
@@ -330,12 +331,13 @@ public class VoxelMeshGenerator : MonoBehaviour
 
     void AddQuadTrianglesToMaterial(int vertexIndex, int materialID)
     {
-        materialTriangles[materialID].Add(vertexIndex);
-        materialTriangles[materialID].Add(vertexIndex + 1);
-        materialTriangles[materialID].Add(vertexIndex + 2);
+        materialID -= 1;
+        submeshTriangles[materialID].Add(vertexIndex);
+        submeshTriangles[materialID].Add(vertexIndex + 1);
+        submeshTriangles[materialID].Add(vertexIndex + 2);
 
-        materialTriangles[materialID].Add(vertexIndex);
-        materialTriangles[materialID].Add(vertexIndex + 2);
-        materialTriangles[materialID].Add(vertexIndex + 3);
+        submeshTriangles[materialID].Add(vertexIndex);
+        submeshTriangles[materialID].Add(vertexIndex + 2);
+        submeshTriangles[materialID].Add(vertexIndex + 3);
     }
 }
