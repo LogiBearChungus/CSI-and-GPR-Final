@@ -20,6 +20,7 @@ public class ChunkManager : MonoBehaviour
 
         heightMap = perlinNoise.createNoise(chunkSize);
 
+        // Pass each chunk its relative information and then build the chunk
         for (int x = 0; x < chunkSideCount; x++)
         {
             for (int z = 0; z < chunkSideCount; z++)

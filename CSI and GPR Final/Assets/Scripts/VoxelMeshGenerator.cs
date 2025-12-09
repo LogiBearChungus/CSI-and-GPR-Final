@@ -9,7 +9,6 @@ public class VoxelMeshGenerator : MonoBehaviour
 {
     public Material voxelMaterial;
     public int[,,] voxelData;
-    const int width = 1, height = 1;
     [SerializeField] public float[,] heightMap;
     [SerializeField] public int xLocation;
     [SerializeField] public int zLocation;
@@ -20,16 +19,14 @@ public class VoxelMeshGenerator : MonoBehaviour
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
-    [SerializeField] public Material grass;
     [SerializeField] public Material[] materials;
-    private List<int>[] submeshTriangles;
     private List<int> grassTopTriangles = new List<int>();
     private List<int> grassSideTriangles = new List<int>();
     private List<int> dirtTriangles = new List<int>();
     private List<int> stoneTriangles = new List<int>();
 
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    //Builds voxel data for this chunk using heightmap
     public void BuildChunk()
     {
         mesh = new Mesh();
@@ -62,8 +59,10 @@ public class VoxelMeshGenerator : MonoBehaviour
         }
     }
 
+    // Converts voxelData into actual mesh geometry
     public void GenerateMesh()
     {
+        // Reset mesh buffers
         mesh.Clear();
         vertices.Clear();
         grassSideTriangles.Clear();
@@ -90,7 +89,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         mesh.vertices = vertices.ToArray();
         mesh.uv = uvs.ToArray();
 
-
+        // Determine how many submeshes are needed (only add ones we use)
         int subMeshCount = 0;
         if (grassSideTriangles.Count > 0) subMeshCount++;
         if (grassTopTriangles.Count > 0) subMeshCount++;
@@ -102,6 +101,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         int currentSubMesh = 0;
         List<Material> activeMaterials = new List<Material>();
 
+        // Assign triangles to each submesh in order
         if (grassTopTriangles.Count > 0)
         {
             mesh.SetTriangles(grassTopTriangles, currentSubMesh);
@@ -127,12 +127,15 @@ public class VoxelMeshGenerator : MonoBehaviour
             currentSubMesh++;
         }
 
+        // Compute smooth lighting
         mesh.RecalculateNormals();
 
         // Apply to components
         GetComponent<MeshFilter>().mesh = mesh;
         GetComponent<MeshRenderer>().materials = activeMaterials.ToArray();
     }
+
+    // Generates all exposed faces for a single voxel
     void CreateVoxel(int x, int y, int z, int materialID)
     {
         // Check each face and only create it if it's exposed
@@ -144,6 +147,8 @@ public class VoxelMeshGenerator : MonoBehaviour
         if (!IsVoxelSolid(x, y, z - 1)) CreateBackFace(x, y, z, materialID);     // Back
 
     }
+
+    // Returns whether a voxel index is in-bounds and solid
     public bool IsVoxelSolid(int x, int y, int z)
         {
             // Check if position is out of bounds
@@ -154,14 +159,13 @@ public class VoxelMeshGenerator : MonoBehaviour
             return voxelData[x, y, z] > 0;
         }
 
-        bool IsNeighborSolid(int x, int y, int z){
-         if(voxelData[x, y, z] > 0){
-            return true;
-         }else{ 
-         return false; }
 
+    // Simple neighbor-check helper (used by faces)
+    bool IsNeighborSolid(int x, int y, int z){
+        return voxelData[x, y, z] > 0;
+    }
 
-         }
+    // --- FACE CREATION FUNCTIONS ---------------------------------------------------
     void CreateTopFace(int x, int y, int z, int materialID)
     {
         if (materialID == 1)
@@ -310,36 +314,9 @@ public class VoxelMeshGenerator : MonoBehaviour
       }
       
     }
-    
-    void AddQuadTriangles(int vertexIndex)
-    {
-        // First triangle
-        triangles.Add(vertexIndex);
-        triangles.Add(vertexIndex + 1);
-        triangles.Add(vertexIndex + 2);
-
-        // Second triangle
-        triangles.Add(vertexIndex);
-        triangles.Add(vertexIndex + 2);
-        triangles.Add(vertexIndex + 3);
-    }
-
-    List<int> AddSubMeshTriangles(int vertexIndex) {
-        List<int> tAngles = new List<int>();
-        tAngles.Add(vertexIndex);
-        tAngles.Add(vertexIndex + 1);
-        tAngles.Add(vertexIndex + 2);
-
-        // Second triangle
-        tAngles.Add(vertexIndex);
-        tAngles.Add(vertexIndex + 2);
-        tAngles.Add(vertexIndex + 3);
-
-        return tAngles;
-    }
 
 
-
+    // Adds UVs for a standard square
     void AddQuadUVs()
     {
         uvs.Add(new Vector2(0, 0));
@@ -348,6 +325,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         uvs.Add(new Vector2(0, 1));
     }
 
+    // Picks material by how deep the voxel is relative to the surface
     int GetMaterialIDByHeight(int currentY, int surfaceHeight)
     {
         // If we're at or near the surface, use grass
@@ -367,6 +345,7 @@ public class VoxelMeshGenerator : MonoBehaviour
         }
     }
 
+    // Pushes triangle indices into the correct material submesh list
     void AddQuadTrianglesToMaterial(int vertexIndex, int materialID)
     {
 
