@@ -21,12 +21,12 @@ public class VoxelMeshGenerator : MonoBehaviour
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
     [SerializeField] public Material grass;
-    private List<Material> usedMaterials;
+    [SerializeField] public Material[] materials;
+    private Dictionary<int, List<int>> materialTriangles = new Dictionary<int, List<int>>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void BuildChunk()
     {
-        usedMaterials = new List<Material>();
         mesh = new Mesh();
         //Generate Voxel Data
         voxelData = new int[chunkSize, chunkSize, chunkSize];
@@ -40,11 +40,11 @@ public class VoxelMeshGenerator : MonoBehaviour
                 {
                     if (y < height)
                     {
-                        voxelData[x,y,z] = 1;
+                        voxelData[x,y,z] = GetMaterialIDByHeight(y, height);
                     }
                     else
                     {
-                        voxelData[x, y, z] = 0;
+                        voxelData[x, y, z] = 0; //air
                     }
 
                 }
@@ -53,7 +53,6 @@ public class VoxelMeshGenerator : MonoBehaviour
 
 
         }
-        //GenerateMesh();
     }
 
     public void GenerateMesh()
@@ -62,6 +61,13 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Clear();
         triangles.Clear();
         uvs.Clear();
+        materialTriangles.Clear();
+
+        // Initialize triangle lists for each material
+        for (int i = 1; i < materials.Length; i++)
+        {
+            materialTriangles[i] = new List<int>();
+        }
 
         // Loop through all voxels
         for (int x = 0; x < chunkSize; x++)
@@ -70,9 +76,9 @@ public class VoxelMeshGenerator : MonoBehaviour
             {
                 for (int z = 0; z < chunkSize; z++)
                 {
-                    if (voxelData[x, y, z] == 1)
+                    if (voxelData[x, y, z] > 0)
                     {
-                        CreateVoxel(x, y, z);
+                        CreateVoxel(x, y, z, voxelData[x,y,z]);
                     }
                 }
             }
@@ -81,34 +87,33 @@ public class VoxelMeshGenerator : MonoBehaviour
         // Create or update the mesh
       
        GetComponent<MeshFilter>().mesh = mesh;
-        
-        
         mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
         mesh.uv = uvs.ToArray();
-        mesh.RecalculateNormals();
 
-        // Apply material
-        if (voxelMaterial != null)
+        // Set submeshes
+        mesh.subMeshCount = materials.Length - 1;
+        int subMeshIndex = 0;
+        for (int i = 1; i < materials.Length; i++)
         {
-            GetComponent<MeshRenderer>().material = voxelMaterial;
+            if (materialTriangles[i].Count > 0)
+            {
+                mesh.SetTriangles(materialTriangles[i], subMeshIndex);
+                subMeshIndex++;
+            }
         }
-      /*  Material[] finalMaterials = new Material[usedMaterials.Count];
-        for (int i = 0; i < usedMaterials.Count; i++)
-        {
-            finalMaterials[i] = usedMaterials[i];
-        }
-        GetComponent<MeshRenderer>().sharedMaterials = finalMaterials;*/
+
+        mesh.RecalculateNormals();
+        GetComponent<MeshRenderer>().materials = materials;
     }
-    void CreateVoxel(int x, int y, int z)
+    void CreateVoxel(int x, int y, int z, int materialID)
     {
         // Check each face and only create it if it's exposed
-        if (!IsVoxelSolid(x, y + 1, z)) CreateTopFace(x, y, z);      // Top
-        if (!IsVoxelSolid(x, y - 1, z)) CreateBottomFace(x, y, z);   // Bottom
-        if (!IsVoxelSolid(x - 1, y, z)) CreateLeftFace(x, y, z);     // Left
-        if (!IsVoxelSolid(x + 1, y, z)) CreateRightFace(x, y, z);    // Right
-        if (!IsVoxelSolid(x, y, z + 1)) CreateFrontFace(x, y, z);    // Front
-        if (!IsVoxelSolid(x, y, z - 1)) CreateBackFace(x, y, z);     // Back
+        if (!IsVoxelSolid(x, y + 1, z)) CreateTopFace(x, y, z, materialID);      // Top
+        if (!IsVoxelSolid(x, y - 1, z)) CreateBottomFace(x, y, z, materialID);   // Bottom
+        if (!IsVoxelSolid(x - 1, y, z)) CreateLeftFace(x, y, z, materialID);     // Left
+        if (!IsVoxelSolid(x + 1, y, z)) CreateRightFace(x, y, z, materialID);    // Right
+        if (!IsVoxelSolid(x, y, z + 1)) CreateFrontFace(x, y, z, materialID);    // Front
+        if (!IsVoxelSolid(x, y, z - 1)) CreateBackFace(x, y, z, materialID);     // Back
 
     }
     public bool IsVoxelSolid(int x, int y, int z)
@@ -131,24 +136,23 @@ public class VoxelMeshGenerator : MonoBehaviour
 
 
          }
-    void CreateTopFace(int x, int y, int z)
+    void CreateTopFace(int x, int y, int z, int materialID)
     {
       if (y == chunkSize-1 || !IsNeighborSolid(x, y + 1, z))
       {
-            mesh.subMeshCount++;
          int vertexIndex = vertices.Count;
          vertices.Add(new Vector3(x, y + 1, z));
          vertices.Add(new Vector3(x, y + 1, z + 1));
          vertices.Add(new Vector3(x + 1, y + 1, z + 1));
          vertices.Add(new Vector3(x + 1, y + 1, z));
-            AddQuadTriangles(vertexIndex);
-            //mesh.SetTriangles(AddSubMeshTriangles(vertexIndex), mesh.subMeshCount - 1);
-            //usedMaterials.Add(grass);
+
+         // Add triangles to the correct material list
+         AddQuadTrianglesToMaterial(vertexIndex, materialID);
          AddQuadUVs(0.5f);
       }
     }
 
-    void CreateBottomFace(int x, int y, int z)
+    void CreateBottomFace(int x, int y, int z, int materialID)
     {
       if(y == 0 || !IsNeighborSolid(x, y -1, z))
        { int vertexIndex = vertices.Count;
@@ -156,12 +160,12 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Add(new Vector3(x + 1, y, z));
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x, y, z + 1));
-        AddQuadTriangles(vertexIndex);
+        AddQuadTrianglesToMaterial(vertexIndex, materialID);
         AddQuadUVs(1);
       }
     }
 
-    void CreateLeftFace(int x, int y, int z)
+    void CreateLeftFace(int x, int y, int z, int materialID)
     {
         if (x == 0)
         {
@@ -172,7 +176,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x, y, z + 1));
                 vertices.Add(new Vector3(x, y + 1, z + 1));
                 vertices.Add(new Vector3(x, y + 1, z));
-                AddQuadTriangles(vertexIndex);
+                AddQuadTrianglesToMaterial(vertexIndex, materialID);
                 AddQuadUVs(1);
                 
             }
@@ -183,13 +187,13 @@ public class VoxelMeshGenerator : MonoBehaviour
             vertices.Add(new Vector3(x, y, z + 1));
             vertices.Add(new Vector3(x, y + 1, z + 1));
             vertices.Add(new Vector3(x, y + 1, z));
-            AddQuadTriangles(vertexIndex);
+            AddQuadTrianglesToMaterial(vertexIndex, materialID);
             AddQuadUVs(1);
         }
         
     }
 
-    void CreateRightFace(int x, int y, int z)
+    void CreateRightFace(int x, int y, int z, int materialID)
     {
         if (x == chunkSize - 1)
         {
@@ -200,7 +204,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x + 1, y + 1, z));
                 vertices.Add(new Vector3(x + 1, y + 1, z + 1));
                 vertices.Add(new Vector3(x + 1, y, z + 1));
-                AddQuadTriangles(vertexIndex);
+                AddQuadTrianglesToMaterial(vertexIndex, materialID);
                 AddQuadUVs(1);
             }
         }else if (!IsNeighborSolid(x + 1, y, z))
@@ -210,13 +214,13 @@ public class VoxelMeshGenerator : MonoBehaviour
             vertices.Add(new Vector3(x + 1, y + 1, z));
             vertices.Add(new Vector3(x + 1, y + 1, z + 1));
             vertices.Add(new Vector3(x + 1, y, z + 1));
-            AddQuadTriangles(vertexIndex);
+            AddQuadTrianglesToMaterial(vertexIndex, materialID);
             AddQuadUVs(1);
         }
         
     }
 
-    void CreateFrontFace(int x, int y, int z)
+    void CreateFrontFace(int x, int y, int z, int materialID)
     {
         if (z == chunkSize - 1)
         {
@@ -227,7 +231,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x + 1, y, z + 1));
                 vertices.Add(new Vector3(x + 1, y + 1, z + 1));
                 vertices.Add(new Vector3(x, y + 1, z + 1));
-                AddQuadTriangles(vertexIndex);
+                AddQuadTrianglesToMaterial(vertexIndex, materialID);
                 AddQuadUVs(1);
             }
         }else if (!IsNeighborSolid(x,y,z+1))
@@ -236,12 +240,12 @@ public class VoxelMeshGenerator : MonoBehaviour
         vertices.Add(new Vector3(x + 1, y, z + 1));
         vertices.Add(new Vector3(x + 1, y + 1, z + 1));
         vertices.Add(new Vector3(x, y + 1, z + 1));
-        AddQuadTriangles(vertexIndex);
-         AddQuadUVs(1);
+            AddQuadTrianglesToMaterial(vertexIndex, materialID);
+            AddQuadUVs(1);
       }
     }
 
-    void CreateBackFace(int x, int y, int z)
+    void CreateBackFace(int x, int y, int z, int materialID)
     {
         if (z == 0)
         {
@@ -252,7 +256,7 @@ public class VoxelMeshGenerator : MonoBehaviour
                 vertices.Add(new Vector3(x, y + 1, z));
                 vertices.Add(new Vector3(x + 1, y + 1, z));
                 vertices.Add(new Vector3(x + 1, y, z));
-                AddQuadTriangles(vertexIndex);
+                AddQuadTrianglesToMaterial(vertexIndex, materialID);
                 AddQuadUVs(1);
             }
         }else if ( !IsNeighborSolid(x, y, z-1))
@@ -262,8 +266,8 @@ public class VoxelMeshGenerator : MonoBehaviour
          vertices.Add(new Vector3(x, y + 1, z));
          vertices.Add(new Vector3(x + 1, y + 1, z));
          vertices.Add(new Vector3(x + 1, y, z));
-         AddQuadTriangles(vertexIndex);
-         AddQuadUVs(1);
+            AddQuadTrianglesToMaterial(vertexIndex, materialID);
+            AddQuadUVs(1);
       }
       
     }
@@ -303,5 +307,35 @@ public class VoxelMeshGenerator : MonoBehaviour
         uvs.Add(new Vector2(texCoord, texCoord - 0.5f));
         uvs.Add(new Vector2(texCoord, texCoord));
         uvs.Add(new Vector2(texCoord - 0.5f, texCoord));
+    }
+
+    int GetMaterialIDByHeight(int currentY, int surfaceHeight)
+    {
+        // If we're at or near the surface, use grass
+        if (currentY >= surfaceHeight - 1)
+        {
+            return 1; // Grass
+        }
+        // A few blocks below surface, use dirt
+        else if (currentY >= surfaceHeight - 4)
+        {
+            return 2; // Dirt
+        }
+        // Everything else is stone
+        else
+        {
+            return 3; // Stone
+        }
+    }
+
+    void AddQuadTrianglesToMaterial(int vertexIndex, int materialID)
+    {
+        materialTriangles[materialID].Add(vertexIndex);
+        materialTriangles[materialID].Add(vertexIndex + 1);
+        materialTriangles[materialID].Add(vertexIndex + 2);
+
+        materialTriangles[materialID].Add(vertexIndex);
+        materialTriangles[materialID].Add(vertexIndex + 2);
+        materialTriangles[materialID].Add(vertexIndex + 3);
     }
 }
