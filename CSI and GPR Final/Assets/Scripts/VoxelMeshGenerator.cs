@@ -22,7 +22,9 @@ public class VoxelMeshGenerator : MonoBehaviour
     private List<Vector2> uvs = new List<Vector2>();
     [SerializeField] public Material grass;
     [SerializeField] public Material[] materials;
-    private Dictionary<int, List<int>> materialTriangles = new Dictionary<int, List<int>>();
+    private List<int> grassTriangles = new List<int>();
+    private List<int> dirtTriangles = new List<int>();
+    private List<int> stoneTriangles = new List<int>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void BuildChunk()
@@ -59,15 +61,10 @@ public class VoxelMeshGenerator : MonoBehaviour
     {
         mesh.Clear();
         vertices.Clear();
-        triangles.Clear();
+        grassTriangles.Clear();
+        dirtTriangles.Clear();
+        stoneTriangles.Clear();
         uvs.Clear();
-        materialTriangles.Clear();
-
-        // Initialize triangle lists for each material
-        for (int i = 1; i < materials.Length; i++)
-        {
-            materialTriangles[i] = new List<int>();
-        }
 
         // Loop through all voxels
         for (int x = 0; x < chunkSize; x++)
@@ -84,26 +81,44 @@ public class VoxelMeshGenerator : MonoBehaviour
             }
         }
 
-        // Create or update the mesh
-      
-       GetComponent<MeshFilter>().mesh = mesh;
+        // Assign mesh data
         mesh.vertices = vertices.ToArray();
         mesh.uv = uvs.ToArray();
 
-        // Set submeshes
-        mesh.subMeshCount = materials.Length - 1;
-        int subMeshIndex = 0;
-        for (int i = 1; i < materials.Length; i++)
+        int subMeshCount = 0;
+        if (grassTriangles.Count > 0) subMeshCount++;
+        if (dirtTriangles.Count > 0) subMeshCount++;
+        if (stoneTriangles.Count > 0) subMeshCount++;
+
+        mesh.subMeshCount = subMeshCount;
+
+        int currentSubMesh = 0;
+        List<Material> activeMaterials = new List<Material>();
+
+        if (grassTriangles.Count > 0)
         {
-            if (materialTriangles[i].Count > 0)
-            {
-                mesh.SetTriangles(materialTriangles[i], subMeshIndex);
-                subMeshIndex++;
-            }
+            mesh.SetTriangles(grassTriangles, currentSubMesh);
+            activeMaterials.Add(materials[0]);
+            currentSubMesh++;
+        }
+        if (dirtTriangles.Count > 0)
+        {
+            mesh.SetTriangles(dirtTriangles, currentSubMesh);
+            activeMaterials.Add(materials[1]);
+            currentSubMesh++;
+        }
+        if (stoneTriangles.Count > 0)
+        {
+            mesh.SetTriangles(stoneTriangles, currentSubMesh);
+            activeMaterials.Add(materials[2]);
+            currentSubMesh++;
         }
 
         mesh.RecalculateNormals();
-        GetComponent<MeshRenderer>().materials = materials;
+
+        // Apply to components
+        GetComponent<MeshFilter>().mesh = mesh;
+        GetComponent<MeshRenderer>().materials = activeMaterials.ToArray();
     }
     void CreateVoxel(int x, int y, int z, int materialID)
     {
@@ -123,13 +138,11 @@ public class VoxelMeshGenerator : MonoBehaviour
             {
                 return false; // Treat out of bounds as air
             }
-            return voxelData[x, y, z] == 1;
+            return voxelData[x, y, z] > 0;
         }
 
         bool IsNeighborSolid(int x, int y, int z){
-        Debug.Log(xLocation);
-        Debug.Log(zLocation);
-         if(voxelData[x, y, z] == 1){
+         if(voxelData[x, y, z] > 0){
             return true;
          }else{ 
          return false; }
@@ -330,12 +343,22 @@ public class VoxelMeshGenerator : MonoBehaviour
 
     void AddQuadTrianglesToMaterial(int vertexIndex, int materialID)
     {
-        materialTriangles[materialID].Add(vertexIndex);
-        materialTriangles[materialID].Add(vertexIndex + 1);
-        materialTriangles[materialID].Add(vertexIndex + 2);
+        // Add to the appropriate triangle list based on material
+        List<int> targetList = null;
 
-        materialTriangles[materialID].Add(vertexIndex);
-        materialTriangles[materialID].Add(vertexIndex + 2);
-        materialTriangles[materialID].Add(vertexIndex + 3);
+        if (materialID == 1) targetList = grassTriangles;
+        else if (materialID == 2) targetList = dirtTriangles;
+        else if (materialID == 3) targetList = stoneTriangles;
+
+        if (targetList != null)
+        {
+            targetList.Add(vertexIndex);
+            targetList.Add(vertexIndex + 1);
+            targetList.Add(vertexIndex + 2);
+
+            targetList.Add(vertexIndex);
+            targetList.Add(vertexIndex + 2);
+            targetList.Add(vertexIndex + 3);
+        }
     }
 }

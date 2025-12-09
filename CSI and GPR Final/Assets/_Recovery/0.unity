@@ -306,7 +306,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   chunkSize: 16
   chunkPrefab: {fileID: 516330425528005635, guid: 4e1b725c4b5a21949af7bd6db6b3fcd2, type: 3}
-  chunkSideCount: 2
+  chunkSideCount: 10
   noiseMultiplier: 1
   perlinNoise: {fileID: 1435415840}
   defaultHeightMultiplier: 0.8
